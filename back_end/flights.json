@@ -1,0 +1,68 @@
+[
+    {
+        "number": "1001",
+        "source": "Delhi",
+        "departure": "08:00",
+        "destination": "Mumbai",
+        "arrival": "10:00",
+        "airline": "IndiGo",
+        "hallStation": "A1",
+        "hallTime": "07:30",
+        "priority": 2
+    },
+    {
+        "number": "1002",
+        "source": "Mumbai",
+        "departure": "09:00",
+        "destination": "Chennai",
+        "arrival": "11:30",
+        "airline": "Air India",
+        "hallStation": "B2",
+        "hallTime": "08:30",
+        "priority": 1
+    },
+    {
+        "number": "1003",
+        "source": "Kolkata",
+        "departure": "07:30",
+        "destination": "Delhi",
+        "arrival": "09:45",
+        "airline": "SpiceJet",
+        "hallStation": "C1",
+        "hallTime": "07:00",
+        "priority": 4
+    },
+    {
+        "number": "1004",
+        "source": "Chennai",
+        "departure": "10:30",
+        "destination": "Goa",
+        "arrival": "12:30",
+        "airline": "Vistara",
+        "hallStation": "D3",
+        "hallTime": "10:00",
+        "priority": 3
+    },
+    {
+        "number": "1005",
+        "source": "Goa",
+        "departure": "11:00",
+        "destination": "Hyderabad",
+        "arrival": "13:00",
+        "airline": "Go First",
+        "hallStation": "E2",
+        "hallTime": "10:30",
+        "priority": 5
+    },
+    {
+        "number": "1006",
+        "source": "Hyderabad",
+        "departure": "12:00",
+        "destination": "Ahmedabad",
+        "arrival": "14:30",
+        "airline": "AirAsia India",
+        "hallStation": "F1",
+        "hallTime": "11:30",
+        "priority": 2
+    }
+]

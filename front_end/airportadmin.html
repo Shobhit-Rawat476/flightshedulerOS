@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Airport Admin Information</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-800">
+  <div class="max-w-5xl mx-auto p-6">
+    <header class="bg-blue-900 text-white text-center py-5 rounded-lg mb-6">
+      <h1 class="text-2xl font-bold">Airport Admin Information</h1>
+    </header>
+
+    <nav class="flex justify-between bg-blue-700 text-white px-6 py-3 rounded-lg mb-6">
+        <a href="airportadmin.html" class="hover:bg-blue-600 px-3 py-1 rounded">Admin Information</a>
+      <a href="index.html" class="hover:bg-blue-600 px-3 py-1 rounded">View Flight Details</a>
+      <a href="addflight.html" class="hover:bg-blue-600 px-3 py-1 rounded">Add Flight</a>
+      <a href="login.html" class="hover:bg-blue-600 px-3 py-1 rounded">Logout</a>
+    </nav>
+
+      <section class="bg-white shadow-lg rounded-lg p-6 space-y-4">
+      <h2 class="text-xl font-semibold text-blue-800 mb-4">Admin Overview</h2>
+
+      <div>
+        <span class="font-semibold">Admin Name:</span> <span id="adminName"></span>
+      </div>
+      <div>
+        <span class="font-semibold">Admin ID:</span> <span id="adminId"></span>
+      </div>
+      <div>
+        <span class="font-semibold">Airport:</span> Indira Gandhi International Airport (DEL)
+      </div>
+      <div>
+        <span class="font-semibold">Contact Email:</span> admin@igi-airport.com
+      </div>
+      <div>
+        <span class="font-semibold">Phone:</span> +91 99999 88888
+      </div>
+      <div>
+        <span class="font-semibold">Operating Hours:</span> 24/7
+      </div>
+      <div>
+        <span class="font-semibold">Max Flight Capacity:</span> 120 flights/day
+      </div>
+      <div>
+        <span class="font-semibold">Emergency Contact:</span> emergency@igi-airport.com
+      </div>
+    </section>
+  </div>
+
+  <script>
+    window.onload = function() {
+      // Get the admin data from localStorage
+      const adminName = localStorage.getItem("adminName");
+      const adminId = localStorage.getItem("adminId");
+
+      // Populate the page with the admin data
+      document.getElementById("adminName").textContent = adminName || "Unknown Admin";
+      document.getElementById("adminId").textContent = adminId || "Not Available";
+    };
+  </script>
+</body>
+</html>

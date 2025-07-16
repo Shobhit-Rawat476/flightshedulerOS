@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Airport Network Flight Scheduler</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/frappe-gantt@0.6.1/dist/frappe-gantt.css">
+  <script src="https://cdn.jsdelivr.net/npm/frappe-gantt@0.6.1/dist/frappe-gantt.min.js"></script>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+  <!-- Header -->
+  <header class="bg-blue-900 text-white py-4 text-center shadow-md">
+    <h1 class="text-2xl font-bold">AIRPORT NETWORK FLIGHT SCHEDULER</h1>
+  </header>
+
+  <!-- Navigation -->
+  <nav class="bg-blue-800 text-white flex justify-around py-2 text-sm font-medium">
+     <a href="airportadmin.html" class="hover:bg-blue-600 px-3 py-1 rounded">Admin Information</a>
+    <a href="#" class="bg-blue-700 px-3 py-1 rounded">View Flight Details</a>
+    <a href="addflight.html" class="hover:bg-blue-600 px-3 py-1 rounded">Add Flight</a>
+    <a href="login.html" class="hover:bg-blue-600 px-3 py-1 rounded">Logout</a>
+  </nav>
+
+  <!-- Divider -->
+  <div class="border-t border-gray-300 my-6 mx-6"></div>
+
+  <!-- Main Section -->
+  <main class="max-w-6xl mx-auto p-6 bg-white rounded-lg shadow-lg">
+    <h2 class="text-xl font-semibold text-blue-800 mb-4">View Flight Details</h2>
+
+    <!-- Search and Scheduling Bar -->
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-center mb-6 gap-2">
+      <input type="text" id="flightSearch" placeholder="Enter Flight Number"
+             class="flex-grow px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400" />
+
+      <button onclick="searchFlights()"
+              class="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800 transition">Search</button>
+
+      <!-- Scheduling Algorithm Dropdown -->
+      <select id="algorithmSelect" class="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400">
+        <option value="fcfs">First Come First Serve (FCFS)</option>
+        <option value="sjf">Shortest-Job first(SJF)</option>
+        <option value="priority">Priority Scheduling</option>
+      </select>
+
+      <button onclick="scheduleFlights()"
+              class="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-800 transition">Apply Scheduling</button>
+    </div>
+
+    <!-- Flight Table -->
+    <div class="overflow-x-auto">
+      <table class="min-w-full border border-gray-300 rounded">
+        <thead class="bg-blue-100">
+          <tr class="text-left text-sm text-blue-900 font-semibold">
+            <th class="p-3 border-b">Flight Number</th>
+            <th class="p-3 border-b">Priority</th>
+            <th class="p-3 border-b">Source</th>
+            <th class="p-3 border-b">Departure</th>
+            <th class="p-3 border-b">Destination</th>
+            <th class="p-3 border-b">Arrival</th>
+            <th class="p-3 border-b">Airlines</th>
+            <th class="p-3 border-b">Hall Station</th>
+            <th class="p-3 border-b">Hall Time</th>
+            <th class="p-3 border-b">Date of Schedule</th>
+            <th class="p-3 border-b">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="flightTableBody" class="text-sm text-gray-700">
+          <!-- Flight data will be inserted here -->
+        </tbody>
+      </table>
+    </div>
+
+    <div class="my-8">
+      <h3 class="text-lg font-semibold mb-2 text-blue-800">Flight Schedule Gantt Chart</h3>
+      <div id="gantt" style="background:#f8fafc; border-radius:8px; overflow-x:auto; min-height:300px;"></div>
+    </div>
+  </main>
+
+<script>
+  async function loadFlights() {
+    const response = await fetch('/api/flights');
+    const flights = await response.json();
+    displayFlights(flights);
+  }
+
+  async function scheduleFlights() {
+    const algorithm = document.getElementById('algorithmSelect').value;
+
+    const response = await fetch('/api/schedule', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ algorithm })
+    });
+
+    const scheduledFlights = await response.json();
+    displayFlights(scheduledFlights); // This will update both table and Gantt
+  }
+
+  function isValidTime(t) {
+  return typeof t === "string" && /^\d{2}:\d{2}$/.test(t);
+}
+
+function renderGanttChart(flights) {
+  const tasks = flights
+    .filter(flight =>
+      flight.dateOfSchedule &&
+      isValidTime(flight.departure) &&
+      isValidTime(flight.arrival)
+    )
+    .map((flight, idx) => ({
+      id: flight.number || `flight${idx}`,
+      // Add turnaround and waiting time to the label
+      name: `#${idx + 1} Flight ${flight.number} (P${flight.priority ?? ''}) [${flight.dateOfSchedule}] | Turnaround: ${flight.turnaroundTime} min | Waiting: ${flight.waitingTime} min`,
+      start: `${flight.dateOfSchedule}T${flight.departure}`,
+      end: `${flight.dateOfSchedule}T${flight.arrival}`,
+      progress: 100,
+      custom_class: 'bg-blue-400',
+      turnaroundTime: flight.turnaroundTime,
+      waitingTime: flight.waitingTime
+    }));
+
+  document.getElementById('gantt').innerHTML = '';
+
+  if (tasks.length > 0) {
+    try {
+      new Gantt("#gantt", tasks, {
+        view_mode: 'Hour',
+        custom_popup_html: function(task) {
+          return `
+            <div class="p-2">
+              <b>${task.name}</b><br>
+              <b>Start:</b> ${task.start}<br>
+              <b>End:</b> ${task.end}<br>
+              <b>Turnaround Time:</b> ${task.turnaroundTime} min<br>
+              <b>Waiting Time:</b> ${task.waitingTime} min
+            </div>
+          `;
+        }
+      });
+    } catch (e) {
+      console.error("Gantt error:", e);
+    }
+  }
+}
+
+  function displayFlights(flightsToDisplay) {
+    const tableBody = document.getElementById('flightTableBody');
+    tableBody.innerHTML = '';
+    if (flightsToDisplay.length === 0) {
+      tableBody.innerHTML = '<tr><td colspan="11" class="text-center p-4 text-gray-500">No flights found.</td></tr>';
+      renderGanttChart([]); // Clear chart
+      return;
+    }
+
+    flightsToDisplay.forEach(flight => {
+      const row = document.createElement('tr');
+      row.classList.add('hover:bg-gray-100', 'transition');
+      row.innerHTML = `
+        <td class="p-3 border-b">${flight.number}</td>
+        <td class="p-3 border-b">${flight.priority !== undefined ? flight.priority : ''}</td>
+        <td class="p-3 border-b">${flight.source}</td>
+        <td class="p-3 border-b">${flight.departure}</td>
+        <td class="p-3 border-b">${flight.destination}</td>
+        <td class="p-3 border-b">${flight.arrival}</td>
+        <td class="p-3 border-b">${flight.airline}</td>
+        <td class="p-3 border-b ${flight.hallStation === 'no' ? 'italic text-gray-400' : ''}">${flight.hallStation}</td>
+        <td class="p-3 border-b ${flight.hallTime === '00:00' ? 'italic text-gray-400' : ''}">${flight.hallTime}</td>
+        <td class="p-3 border-b">${flight.dateOfSchedule}</td>
+        <td class="p-3 border-b">
+          <button onclick="deleteFlight('${flight.number}')" class="bg-red-600 hover:bg-red-800 text-white px-3 py-1 rounded">Delete</button>
+        </td>
+      `;
+      tableBody.appendChild(row);
+    });
+
+    renderGanttChart(flightsToDisplay); // <-- This updates the Gantt chart
+  }
+
+  function searchFlights() {
+    const query = document.getElementById('flightSearch').value.toLowerCase();
+    fetch('/api/flights')
+      .then(res => res.json())
+      .then(flights => {
+        const filtered = flights.filter(flight =>
+          flight.number.toLowerCase().includes(query)
+        );
+        displayFlights(filtered);
+      });
+  }
+
+  async function deleteFlight(flightNumber) {
+    if (!confirm('Are you sure you want to delete this flight?')) return;
+    const response = await fetch(`/api/flights/${flightNumber}`, { method: 'DELETE' });
+    if (response.ok) {
+      alert('Flight deleted successfully!');
+      loadFlights(); // Refresh the table and Gantt chart
+    } else {
+      alert('Failed to delete flight.');
+    }
+  }
+
+  window.onload = loadFlights;
+</script>
+</body>
+</html>
